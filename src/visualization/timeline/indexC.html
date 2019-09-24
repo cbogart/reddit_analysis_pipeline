@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DiscourseDB: enviro_csm5 database</title>
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
+    <script src="http://code.angularjs.org/1.2.16/angular.js"></script>
+    <script src="ElasticUI/examples/demo/lib/elasticsearch.angular.js"></script>
+    <script src="ElasticUI/examples/demo/lib/elastic.js"></script>
+    <script src="ElasticUI/dist/elasticui.js"></script>
+    <link href="https://unpkg.com/event-drops/dist/style.css" rel="stylesheet" />
+    <script src="colorHash.js"></script>
+    <script src="https://unpkg.com/d3"></script>
+    <script src="https://unpkg.com/event-drops"></script>
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            display: block;
+            padding: 20px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+            border-right: 1px solid #eee;
+        }
+        .instructions {
+            display: block;
+            margin: 0 auto;
+            width: 450px;
+        }
+    </style>
+    <script>
+        var global = global || window;
+        // From: https://html-online.com/articles/get-url-parameters-javascript/
+        function getUrlVars() {
+            var vars = {};
+            var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+                vars[key] = value;
+            });
+            return vars;
+        }
+        function es_index() {
+          var uv = getUrlVars();
+          if ("db" in uv) { return uv["db"]; }
+          return "x";
+        }
+        var groupBy = function(xs, key) {
+          return xs.reduce(function(rv, x) {
+            (rv[key(x)] = rv[key(x)] || []).push(x);
+            return rv;
+          }, {});
+        };
+        // want to create {key: [x1,x2,x3,x4]} for all x1,2,3 in xs,
+        // where keys() returns ALL keys that x should be placed in.
+        // x should not be dulplicated
+        var groupByMultiple = function(xs, keys) {
+          bins = {}
+          xs.map(function(x) {
+            ks = keys(x);
+            ks.map(function(k) {
+              if (typeof(bins[k]) == 'undefined') {
+                bins[k] = [];
+              }
+              if (bins[k].indexOf(x) == -1) {
+                bins[k].push(x);
+              }
+              //bins[k] = Array.from(new Set(bins[k]));  clone: Object.assign({}, x)
+            });
+          });
+          return bins;
+        };
+        var topNkeys = function(amap, N) {
+          keys = Object.keys(amap);
+          keys.sort(function(a,b) { return amap[b].length - amap[a].length || b.localeCompare(a);});
+          keys = keys.splice(0,N);
+          return keys;
+        };
+        var canonLabelSet = function(dataItem, category) {
+          if (category === "Subreddits") {
+            return dataItem._source.discourseParts;
+          } else if (category === "Topics") {
+              if (!dataItem._source.annotation_FT) { return ["noTopics"]; }
+              annos = groupBy(dataItem._source.annotation_FT, an => an.features[0].value)
+              if (Object.keys(annos).length > 0) {
+                main_annos = topNkeys(annos,10);
+                return main_annos;   // Group by the most frequent annotation if any
+              } else {
+                return ["noTopics"];
+              }
+          } else if (category === "Schemas") {
+              if (typeof(dataItem._source.annotation_StorySchema) == "undefined") { return ["noSchemas"]; }
+              annos = groupBy(dataItem._source.annotation_StorySchema, an => an.features[0].value)
+              if (Object.keys(annos).length > 0) {
+                main_annos = topNkeys(annos,10);
+                return main_annos;   // Group by the most frequent annotation if any
+              } else {
+                return ["noSchemas"];
+              }
+          } else if (category === "Contributors") {
+            return [dataItem._source.contributor];
+          } else {
+            return [];
+          }
+        }
+        var canonLabel = function(dataItem, category) {
+          if (category === "Subreddits") {
+            return dataItem._source.discourseParts[0];
+          } else if (category === "Topics") {
+              if (!dataItem._source.annotation_FT) { return "noTopics"; }
+              annos = groupBy(dataItem._source.annotation_FT, an => an.features[0].value)
+              if (Object.keys(annos).length > 0) {
+                main_anno = topNkeys(annos,1)[0];
+                return main_anno;   // Group by the most frequent annotation if any
+              } else {
+                return "noTopics";
+              }
+          } else if (category === "Schemas") {
+              if (typeof(dataItem._source.annotation_StorySchema) == "undefined") { return "noSchemas"; }
+              annos = groupBy(dataItem._source.annotation_StorySchema, an => an.features[0].value)
+              if (Object.keys(annos).length > 0) {
+                main_anno = topNkeys(annos,1)[0];
+                return main_anno;   // Group by the most frequent annotation if any
+              } else {
+                return "noSchemas";
+              }
+          } else if (category === "Contributors") {
+            return dataItem._source.contributor;
+          } else {
+            return "unknown";
+          }
+        }
+        var highlite = function(str, thiscategory, colorcategory) {
+          if (thiscategory===colorcategory) {
+            return util.highlight(str);
+          } else {
+            return str;
+          }
+        }
+        var item2text = function(item, colorcategory) {
+          var src = item._source;
+          var theText = '<h2>' + src.title + '</h2>' +
+                '<p>' + highlite(src.contributor, "Contributors", colorcategory) + ": " + src.startTime +
+                ' in subreddit ' +
+                highlite(src.discourseParts[0], "Subreddits", colorcategory) + '</p>' +
+                '<hr><pre>' + src.content + "</pre></hr>";
+          if (src.annotation_StorySchema) {
+            for (annon in src.annotation_StorySchema) {
+              anno = src.annotation_StorySchema[annon];
+              theText += "<b>" + anno.type + ": " +
+                  highlite(anno.features[0].value, "Schemas", colorcategory) + "</b>:"
+              if (anno.text.length > src.content.length-4) {
+                theText += " (entire posting)"
+              } else {
+                theText += anno.text.substr(0,100);
+                if (anno.text.length > 100) { theText += "..."; }
+              }
+              theText += "<br>\n"
+            }
+          }
+          if (src.annotation_FT) {
+            for (annon in src.annotation_FT) {
+              anno = src.annotation_FT[annon];
+              theText += "<b>" + anno.type + ": " +
+                  highlite(anno.features[0].value, "Topics", colorcategory) + "</b>:"
+              if (anno.text.length > src.content.length-4) {
+                theText += " (entire posting)"
+              } else {
+                theText += anno.text.substr(0,100);
+                if (anno.text.length > 100) { theText += "..."; }
+              }
+              theText += "<br>\n"
+            }
+          }
+          return theText;
+        }
+
+
+        angular.module('d3',[])
+            .factory('d3Service', [function() {
+                 return d3();
+               }]);
+        var app = angular
+            .module('tutorial', ['elasticui', 'd3'])
+            .constant('euiHost', 'http://localhost:9200');
+
+
+        //var appd = angular.module('tutorial.directives',['d3', 'tutorial'])
+        app.directive('euiEventDrops', function() { return {
+        //app.directive('euiEventDrops', ['d3Service', function(d3Service) { return {
+          restrict: 'EA',
+          scope: true,
+          template: '<div id="eventdrops-demo" style="width: 90%;"></div>' +
+          'Colors: <select ng-model="eventDropsColor">' +
+              '<option ng-repeat="itemc in [\'Schemas\',\'Topics\',\'Subreddits\',\'Contributors\']">{{itemc}}</option>' +
+          '</select>' +
+          'Rows:' +
+          '<select ng-model="eventDropsRowsplit">' +
+              '<option ng-repeat="itemr in [\'Schemas\',\'Topics\',\'Subreddits\',\'Contributors\']">{{itemr}}</option>' +
+        '  </select>',
+          link: function(scope, elt, attrs) {
+              //d3Service.d3().then(function(d3){
+                window.onresize = function() { scope.$apply(); }
+                scope.eventDropsColor = "Schemas";
+                scope.eventDropsRowsplit = "Subreddits";
+                scope.selectedItem = null;
+                window.chart = eventDrops({
+                  d3,
+                  zoom: {
+                      onZoomEnd: () => scope.$apply()
+                  },
+
+                  drop: {
+                    date: d => new Date(d._source.startTime),
+                    color: (d,index) => util.hashColor(canonLabel(d, scope.eventDropsColor)),
+                    onClick: item => {
+                      scope.selectedItem = item;
+                      scope.updateTextSelection();
+                    }
+                  }
+                });
+
+                window.repositoriesData = [];
+                //scope.eventdrops = {"colors": "Subreddits", "rowsplit": "Annotations"}
+                scope.updateTextSelection = function() {
+                  if (scope.selectedItem) {
+                    var node = document.getElementById('event-drop-detail');
+                    node.innerHTML = item2text(scope.selectedItem, scope.eventDropsColor);
+                  }
+                }
+                scope.updateRepo = function() {
+                  if ("indexVM" in scope &&
+                      "results" in scope.indexVM &&
+                      scope.indexVM.results != null) {
+                    items = scope.indexVM.results.hits.hits;
+                    console.log(items);
+                    window.repositoriesData = [ {
+                      "name": "stuff",
+                      "data": items
+                    }];
+                    console.log("Rowsplit is " + scope.eventDropsRowsplit);
+                    splitup = groupByMultiple(items, i=>canonLabelSet(i,scope.eventDropsRowsplit));
+                    window.repositoriesData =
+                      topNkeys(splitup,10).map(function(key) {return {"name": key, "data": splitup[key]}});
+
+                    console.log(window.repositoriesData);
+                    d3
+                      .select('#eventdrops-demo')
+                      .data([window.repositoriesData])
+                      .call(window.chart);
+                  } else {
+                    console.log("NO results yet");
+                    window.repositoriesData = []
+                  }
+                  scope.updateTextSelection();
+                }
+                scope.$watch('indexVM.results',function(newresults) {
+                  scope.updateRepo();
+                });
+                scope.$watch('eventDropsRowsplit', function () {
+                    console.log("eventdrops update");
+                    scope.updateRepo();
+                });
+                scope.$watch('eventDropsColor', function () {
+                    console.log("eventdrops update");
+                    scope.updateRepo();
+                });
+
+              //});
+            }
+          }
+        });
+
+    </script>
+</head>
+<body ng-app="tutorial" eui-index="'enviroreddit5'" ng-init="indexVM.pageSize=20000;"><!-- ACTION: change to index name -->
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-xs-3 sidebar">
+                <h3>Search</h3>
+                <eui-searchbox field="'content'"></eui-searchbox> <!-- ACTION: change to field to search on -->
+                <h3>Schemas</h3>
+                <eui-checklist field="'annotation_StorySchema.features.value.keyword'" size="10"></eui-checklist>
+                <h3>Topics</h3>
+                <eui-checklist field="'annotation_FT.features.value.keyword'" size="10"></eui-checklist>
+                <h3>Subreddit</h3>
+                <eui-checklist field="'discourseParts.keyword'" size="10"></eui-checklist>
+                <h3>Contributor</h3>
+                <eui-checklist field="'contributor.keyword'" size="10"></eui-checklist>
+
+                <!--h3>Results Per Page</h3>
+                <select ng-model="indexVM.pageSize">
+                    <option ng-repeat="item in [10, 20, 50, 100, 1000, 10000, 100000, 1000000]">{{item}}</option>
+                </select>-->
+            </div>
+            <div class="col-xs-9 col-xs-offset-3 main">
+              <h1>DiscourseDB: enviro_csm database</h1>
+                    <!-- README
+                <div class="instructions panel panel-primary">
+                    <div class="panel-heading">Getting started with the Demo</div>
+                    <div class="panel-body">
+                        Instructions, modify this file according to the following:
+                        <ol>
+                            <li>Set the constant euiHost in &lt;head&gt; to point to your cluster</li>
+                            <li>Change eui-index on &lt;body&gt; tag to the name of your index</li>
+                            <li>Set the field attributes on the facets in the sidebar to meaningful fields of your data</li>
+                        </ol>
+                    </div>
+                </div> -->
+
+
+
+
+
+                <eui-event-drops ></eui-event-drops>
+                <div id="event-drop-detail"></div>
+                <!--ul>
+                    <li ng-repeat="doc in indexVM.results.hits.hits">
+                        {{doc._source.startTime}} <b>{{doc._source.contributor}}:</b> {{doc._source.annotations.text}}
+                    </li>
+                </ul-->
+                <!--eui-simple-paging></eui-simple-paging-->
+
+
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

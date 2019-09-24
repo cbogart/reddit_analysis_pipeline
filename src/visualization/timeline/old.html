@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ElasticUI Demo</title>
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
+    <script src="http://code.angularjs.org/1.2.16/angular.js"></script>
+    <script src="ElasticUI/examples/demo/lib/elasticsearch.angular.js"></script>
+    <script src="ElasticUI/examples/demo/lib/elastic.js"></script>
+    <script src="ElasticUI/dist/elasticui.js"></script>
+    <link href="https://unpkg.com/event-drops/dist/style.css" rel="stylesheet" />
+
+    <script src="https://unpkg.com/d3"></script>
+    <script src="https://unpkg.com/event-drops"></script>
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            display: block;
+            padding: 20px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+            border-right: 1px solid #eee;
+        }
+        .instructions {
+            display: block;
+            margin: 0 auto;
+            width: 450px;
+        }
+    </style>
+    <script>
+        var app = angular
+            .module('tutorial', ['elasticui'])
+            .constant('euiHost', 'http://localhost:9200'); // ACTION: change to cluster address
+    </script>
+</head>
+<body ng-app="tutorial" eui-index="'enviroreddit'"><!-- ACTION: change to index name -->
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-xs-3 sidebar">
+                <h3>Search</h3>
+                <eui-searchbox field="'content'"></eui-searchbox> <!-- ACTION: change to field to search on -->
+                <!--<h3>Single select facet</h3>
+                <eui-singleselect field="'discourseParts.keyword'" size="5"></eui-singleselect> -->
+                <h3>Foreground Topic</h3> <eui-checklist field="'annotations.features.value.keyword'" size="10"></eui-checklist>
+                <h3>Subreddit</h3> <eui-checklist field="'discourseParts.keyword'" size="10"></eui-checklist>
+                <h3>Contributor</h3> <eui-checklist field="'contributor.keyword'" size="10"></eui-checklist> 
+                <h3>Results Per Page</h3>
+                <select ng-model="indexVM.pageSize">
+                    <option ng-repeat="item in [10, 20, 50, 100, 1000, 10000, 100000, 1000000]">{{item}}</option>
+                </select>
+            </div>
+            <div class="col-xs-9 col-xs-offset-3 main">
+                    <!-- README
+                <div class="instructions panel panel-primary">
+                    <div class="panel-heading">Getting started with the Demo</div>
+                    <div class="panel-body">
+                        Instructions, modify this file according to the following:
+                        <ol>
+                            <li>Set the constant euiHost in &lt;head&gt; to point to your cluster</li>
+                            <li>Change eui-index on &lt;body&gt; tag to the name of your index</li>
+                            <li>Set the field attributes on the facets in the sidebar to meaningful fields of your data</li>
+                        </ol>
+                    </div>
+                </div> -->
+
+
+
+
+                <h1>Results</h1>
+                <div id="eventdrops-demo" style="width: 90%;"></div>
+                <ul>
+                    <li ng-repeat="doc in indexVM.results.hits.hits">
+                        {{doc._source.startTime}} <b>{{doc._source.contributor}}:</b> {{doc._source.annotations.text}} 
+                        <!--{{doc._source | json | limitTo: 500}}-> <!-- OPTIONAL: display more meaningful data instead of json -->
+                    </li>
+                </ul>
+                <eui-simple-paging></eui-simple-paging>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+var global = global || window;
+const chart = eventDrops({ d3 });
+
+    //var app = angular.module("tutorial", []);
+
+    //app.controller("myController", (scope) => { console.log("hello"); });
+
+
+    // Capturing value from outside the controller
+    //setTimeout(function(){
+        //var data = angular.element(document.getElementById('yourControllerElementID')).scope().data;
+    //}, 1000);
+
+//repoDict = {};
+//categories = new Set(raw.map( (r) => r.discourseParts[0] ))
+
+//for(rec: raw) {
+    //if rec["discoursePart"] not in repoDict) {
+        //repoDict[rec["discoursePart"]]
+    //repoDict[rec["discoursePart"]] =
+
+const repositoriesData = [
+    {
+        name: 'admin-on-rest',
+        data: [{ date: new Date('2019/04/13 14:21:31') } /* ... */],
+    },
+    {
+        name: 'event-drops',
+        data: [{ date: new Date('2019/04/13 13:24:57') } /* ... */],
+    },
+    {
+        name: 'sedy',
+        data: [{ date: new Date('2019/04/13 13:25:12') } /* ... */],
+    },
+];
+
+
+d3
+    .select('#eventdrops-demo')
+    .data([repositoriesData])
+    .call(chart);
+</script>
+</html>

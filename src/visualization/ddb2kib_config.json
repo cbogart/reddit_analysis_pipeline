@@ -1,0 +1,10 @@
+{
+    "service": "https://localhost"
+    "user" : (discoursedb username)
+    "password" : (discoursedb password)
+    "database" : (discoursedb databasename)
+    "saved_query" : (discoursedb query)
+    "elasticsearch_index": (elasticse index name)
+    "elasticsearch_mapping": "doc",
+    "elasticsearch_url": (elasticsearch 9200 url)
+} 
