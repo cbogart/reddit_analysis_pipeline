@@ -4,7 +4,7 @@
 
 This is a Reddit data scraper and analyzer using [Content Word Filtering and Speaker Preference Model (CSM)](https://github.com/yohanjo/Dialogue-Acts)
 
-Data are stored using MongoDB and [DiscourseDB](http://discoursedb.github.io)
+Data are stored using MongoDB, [DiscourseDB](http://discoursedb.github.io), and ElasticSearch
 
 Data and code related to paper **Using Functional Schemas to Understand Social Media Narratives** see *FunctionalSchemas* dir
 
@@ -22,19 +22,11 @@ Detailed documentation for this project.
 
 Source code dir
 
-## scripts
-
-Various scripts, including simple data exploration and data preprocessing
-
 ## resources
 
 ### subreddit_groups
 
 Groups of subreddits. Each group contains several subreddits regarding similar topics  and the subreddit names are stored in a txt file, one subreddit per line
-
-### post_ids_for_comments
-
-Post_ids for a groups of subreddits. Each group's post_ids are stored in a txt file, one post_id per line.
 
 ## logs
 
