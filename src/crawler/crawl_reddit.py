@@ -24,7 +24,7 @@ api = PushshiftAPI()
 
 class Data():
     def __init__(self, db):
-        self.mongoc = MongoClient("mongodb://127.0.0.1:27017")
+        self.mongoc = MongoClient("mongodb://mongo:27017")
         self.db = self.mongoc[db]
         self.scrapedates = self.db["scrapedates"]
         self.posts = self.db["posts"]
