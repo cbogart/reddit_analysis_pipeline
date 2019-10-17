@@ -1,0 +1,2 @@
+*/5 * * * * root /bin/bash /pipeline/src/crawler/update_cache.sh
+

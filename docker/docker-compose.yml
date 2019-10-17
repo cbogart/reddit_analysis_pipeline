@@ -1,0 +1,28 @@
+version: "3"
+volumes:
+  pipeline:
+  mongovol:
+
+services:
+  app:
+    container_name: controller
+    restart: always
+    depends_on:
+      - 'mongo'
+    build: 
+      context: ../
+      dockerfile: docker/controller/Dockerfile
+    ports:
+      - "80:3000"
+    volumes:
+      - pipeline:/pipeline
+    links:
+      - mongo
+
+  mongo:
+    container_name: mongo
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - 'mongovol:/data/db'
