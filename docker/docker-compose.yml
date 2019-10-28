@@ -2,6 +2,8 @@ version: "3"
 volumes:
   pipeline:
   mongovol:
+  mysql_data:
+  brat_data:
 
 services:
   app:
@@ -26,3 +28,29 @@ services:
       - "27017:27017"
     volumes:
       - 'mongovol:/data/db'
+
+  discoursedb_mysql:
+    image: "mysql:5.7.27"
+    hostname: medical-mysql
+    command: mysqld --user=root --verbose
+    volumes:
+     - 'mysql_data:/var/lib/mysql'
+    environment:
+      MYSQL_ROOT_PASSWORD: smootly
+      MYSQL_USER: "local"
+      MYSQL_PASSWORD: "local"
+    ports:
+     - "127.0.0.1:8083:3306"  # let outside world see 8083
+    expose:
+     - "3306"    # Let other containers see 3306
+
+  discoursedb:
+    build:
+       context: ../
+       dockerfile: docker/discoursedb/Dockerfile
+    volumes:
+     - brat_data:/bratdata
+    depends_on:
+     - discoursedb_mysql
+    expose:
+     - "5280"

@@ -1,0 +1,6 @@
+
+jdbc.host=discoursedb_mysql
+jdbc.port=3306
+jdbc.system_database=discoursedb_ext_system
+jdbc.password=smootly
+jdbc.username=root
