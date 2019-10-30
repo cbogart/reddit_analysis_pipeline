@@ -1,2 +1,3 @@
-*/5 * * * * root /bin/bash /pipeline/src/crawler/update_cache.sh
+*/10 * * * * root /bin/bash /pipeline/src/crawler/update_cache.sh
+5,15,25,35,45,55 * * * * root /bin/bash /pipeline/src/transporter/update_discoursedb.sh
 

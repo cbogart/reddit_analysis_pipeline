@@ -15,14 +15,16 @@ Crawler
    v test that I can run it by hand
    v crontab on crawler scrapes and writes to mongo
    v test that it is working, fresh from docker-compse up
+   * External script to show status of mongo scrape
 
 Transporter
    v set up discoursedb docker
-   * Script to configure discoursedb username, mysql root user, certificates
+   ~ (README) Script to configure discoursedb username, mysql root user, certificates
    * add csv importer java to server docker
    * add config file for forums -> mongo, discoursedb, elasticsearch vizhtml
    * add update_discoursedb.sh on schedule
    * set up browser docker, point to discoursedb docker
+   * External script to show status of discoursedb database
 
 Analyzer
    * add CSM and analyzer scripts to controller

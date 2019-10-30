@@ -50,6 +50,7 @@ services:
        dockerfile: docker/discoursedb/Dockerfile
     volumes:
      - brat_data:/bratdata
+     - pipeline:/pipeline
     depends_on:
      - discoursedb_mysql
     expose:

@@ -1,0 +1,21 @@
+discoursedb_host_for_sql_db="discoursedb_mysql"
+discoursedb_user_for_sql_db="root"
+discoursedb_password_for_sql_db="smootly"
+username = "scraper@example.com"
+password = "scraper1"
+service = "" # (ddb2elastic ddb connection third argment)
+database = ""  # ddb database -- I dont think we need it
+elasticsearch_url = ""
+elasticserch_index = ""
+elasticsearch_mapping = ""
+client_id = ''   # REGISTER WITH PUSHSHIFT.IO TO GET THIS
+client_secret = ''   # REGISTER WITH PUSHSHIFT.IO TO GET THIS
+user_agent = ''   # REGISTER WITH PUSHSHIFT.IO TO GET THIS
+user_name = ''   # REGISTER WITH PUSHSHIFT.IO TO GET THIS
+password = ''   # REGISTER WITH PUSHSHIFT.IO TO GET THIS
+discoursedb_user = "local"
+discoursedb_password = "local"
+discoursedb_host = "localhost"
+
+data_location = '/usr/src/pipeline/data'
+topic_dir = '/usr2/Reddit/CSM-FirstFive-S5-FT10-BT5-FA0.1-BA1.0-B0.001-SG1.0-AG0.1-E0.8-N0.9-SEQ'
