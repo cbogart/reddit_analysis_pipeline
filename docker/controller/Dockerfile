@@ -1,10 +1,13 @@
 FROM python:3
 
-RUN apt-get update && apt-get -y install cron pipenv
+RUN apt-get update
+#RUN apt-get -y install software-properties-common
+#RUN add-apt-repository ppa:openjdk-r/ppa
+RUN apt-get update && apt-get -y install cron pipenv default-jdk
 
 WORKDIR /pipeline
 
-COPY . .
+COPY . /pipeline/
 
 RUN pipenv install --skip-lock
 
