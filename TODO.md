@@ -1,30 +1,30 @@
 Dockers
-   v controller            volume
-   v mongo
-   v discoursedb           volume
-   v discoursedb_mysql
-   * ddb_browser
-   * brat                  volume
-   * elasticsearch
-   * kibana
-   * timeline_browser
+ - [x] controller            volume
+ - [x] mongo
+ - [x] discoursedb           volume
+ - [x] discoursedb_mysql
+ - [ ] ddb_browser
+ - [ ] brat                  volume
+ - [ ] elasticsearch
+ - [ ] kibana
+ - [ ] timeline_browser
 
 Crawler
-   v Set up mongo and crawler dockers
-   v crawler docker has the script directories in it
-   v test that I can run it by hand
-   v crontab on crawler scrapes and writes to mongo
-   v test that it is working, fresh from docker-compse up
-   * External script to show status of mongo scrape
+   - [x] Set up mongo and crawler dockers
+   - [x] crawler docker has the script directories in it
+   - [x] test that I can run it by hand
+   - [x] crontab on crawler scrapes and writes to mongo
+   - [x] test that it is working, fresh from docker-compse up
+   - [ ] External script to show status of mongo scrape
 
 Transporter
-   v set up discoursedb docker
-   ~ (README) Script to configure discoursedb username, mysql root user, certificates
-   * add csv importer java to server docker
-   * add config file for forums -> mongo, discoursedb, elasticsearch vizhtml
-   * add update_discoursedb.sh on schedule
-   * set up browser docker, point to discoursedb docker
-   * External script to show status of discoursedb database
+   - [x] set up discoursedb docker
+   - [ ] (README) Script to configure discoursedb username, mysql root user, certificates
+   - [ ] add csv importer java to server docker
+   - [ ] add config file for forums -> mongo, discoursedb, elasticsearch vizhtml
+   - [ ] add update_discoursedb.sh on schedule
+   - [ ] set up browser docker, point to discoursedb docker
+   - [ ] External script to show status of discoursedb database
 
 Analyzer
    * add CSM and analyzer scripts to controller
